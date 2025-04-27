@@ -1,0 +1,221 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+* {
+    font-family: 'Montserrat';
+}
+
+body {
+    background-color: #441F48;
+    color: #ffffff;
+    margin: 0;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    margin: 0 5%;
+    border-radius: 5px;
+}
+
+header img {
+    margin-top: 5px;
+}
+
+h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+h3 {
+    margin-bottom: 0;
+    font-size: 20px;
+}
+
+nav {
+    display: flex;
+    gap: 15px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #ffffff;
+    font-weight: 600;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+nav a:hover {
+    transform: scale(1.05);
+
+}
+
+.main-section {
+    margin: 2% 5%;
+    background-color: #56355A;
+    border-radius: 15px;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1%;
+    align-items: center;
+}
+
+.welcome-container {
+    margin: 0 30px 0 0;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+}
+
+#small-text {
+    color: #c872e6;
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.welcome-container p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 2;
+}
+
+.welcome-container h1 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 15px;
+}
+
+
+.button-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 20px 0;
+    border-radius: 5px;
+    max-height: 300px;
+    transition: max-height 0.5s ease-in-out, padding 0.3ms ease-in-out;
+}
+
+.category-button {
+    padding: 10px 15px;
+    background-color: rgba(238, 238, 238, 0.10);
+    color: #ffffff;
+    border: #ffffff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+
+.category-button:hover {
+    background-color: rgba(238, 238, 238, 0.15);
+    transform: scale(1.05);
+}
+
+.category-button i {
+    margin-right: 8px;
+}
+
+.more-button {
+    padding: 10px 15px;
+    background-color: rgba(238, 238, 238, 0.10);
+    border-radius: 5px;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.more-button:hover {
+    background-color: rgba(238, 238, 238, 0.15);
+    transform: scale(1.05);
+}
+
+label {
+    margin: 20px 0;
+    display: block;
+}
+
+
+select {
+    padding: 5px;
+    border-radius: 5px;
+    border: none;
+    background-color: rgba(238, 238, 238, 0.10);
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+select:hover {
+    background-color: rgba(238, 238, 238, 0.15);
+    transform: scale(1.05);
+}
+
+select option {
+    background-color: #56355A;
+    color: #ffffff;
+}
+
+#start-button {
+    padding: 15px 15px;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #441F48;
+    border-radius: 5px;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+#start-button:hover {
+    transform: scale(1.02);
+}
+
+footer {
+    float: right;
+    margin-right: 2%;
+}
+
+footer img {
+    position: fixed;
+    bottom: 20px;
+    right: 10px;
+    z-index: 10; /* Ensure it stays above other elements if necessary */
+}
+
+@media (max-width: 768px) {
+    .main-section {
+        grid-template-columns: 1fr;
+    }
+
+    .welcome-container {
+        margin: 0;
+        width: 100%;
+        text-align: center;
+
+        p{
+            font-size: 0.85rem;
+        }
+        h1{
+            font-size: 1.5rem;
+        }
+    }
+
+    h3{
+        margin-top: 2px;
+    }
+
+    .button-container {
+        max-height: none;
+        padding: 10px 0;
+    }
+
+}

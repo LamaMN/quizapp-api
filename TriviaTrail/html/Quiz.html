@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TriviaTrail: Test your knowledge!</title>
+    <link rel="stylesheet" href="../styles/quiz.css">
+    <script src="../scripts/Quiz.js" defer></script>
+    <script src="https://kit.fontawesome.com/8c26f80e18.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="flex">
+    <div id="back-button">
+        <a href="index.html">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+    <div class="wrapper">
+        <div class="quiz-container">
+            <div class="quizhead">
+                <h1 class="quiz-title"><img src="../media/TriviaTrail-light.png" alt="logo" width="180"></h1>
+                <div class="quiz-score flex">
+                    <span id="answered-questions">0</span>/<span id="total-questions">10</span>
+                </div>
+            </div>
+
+
+            <div class="quiz-body">
+                <h2 class="quiz-question" id="question"> <br> <span class="category"></span>
+                </h2>
+                <ul class="quiz-options">
+                    <li class="option" data-value="1"><span></span></li>
+                    <li class="option" data-value="2"><span></span></li>
+                    <li class="option" data-value="3"><span></span></li>
+                    <li class="option" data-value="4"><span></span></li>
+                </ul>
+                <div id="result">
+
+                </div>
+            </div>
+            <div class="quiz-footer">
+                <button type="button" id="check-answer">Check Answer</button>
+                <button type="button" id="play-again">Play Again!</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

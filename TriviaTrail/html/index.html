@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TriviaTrail: Test your knowledge!</title>
+    <link rel="stylesheet" href="../styles/style.css">
+    <script src="../scripts/index.js" defer></script>
+    <script src="https://kit.fontawesome.com/8c26f80e18.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <header>
+        <h1><img src="../media/TriviaTrail.png" alt="logo" width="180"></h1>
+        <nav>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </nav>
+    </header>
+
+    <section class="main-section">
+
+        <div class="welcome-container">
+            <p id="small-text">Welcome to TriviaTrail!</p>
+            <h2>Design your quiz and test your knowledge</h2>
+            <p>Dive into a wide range of technical trivia categories, with questions tailored to all skill levels. Choose your
+                preferred difficulty—from easy to
+                hard—and see how much you really know. Let’s get started!</p>
+        </div>
+
+        <div class="options-container">
+            <h3>Choose Category</h3>
+
+            <div class="button-container" id="buttonContainer">
+                <button class="category-button" data-value="any"> <i class="fa-solid fa-shuffle"></i>Random</button>
+                <button class="category-button" data-value="code"> <i class="fa-solid fa-code"></i>Code</button>
+                <button class="category-button" data-value="html"> <i class="fa-brands fa-html5"></i>HTML</button>
+                <button class="category-button" data-value="wordpress"> <i
+                        class="fa-brands fa-wordpress"></i>wordpress</button>
+                <button class="category-button" data-value="nodejs"> <i class="fa-brands fa-node"></i>Node.js</button>
+                <button class="category-button" data-value="cpanel"> <i class="fa-brands fa-cpanel"></i>CPanel</button>
+                <button class="category-button" data-value="django"> <i class="fa-brands fa-python"></i>Django</button>
+                <button class="more-button" id="moreButton"><i class="fa-solid fa-ellipsis"></i></button>
+            </div>
+
+
+            <div class="select-container">
+
+                <label for="numQuestions">Number of Questions:
+                    <select id="numQuestions">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                    </select>
+                </label>
+
+                <label for="difficulty">Difficulty:
+                    <select id="difficulty">
+                        <option value="any" selected>Any Difficulty</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </label>
+
+                <button id="start-button">Start Quiz</button>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+
+        <div class="footer-container">
+
+            <img src="../media/footer.png" alt="footer illustration" width="600">
+
+        </div>
+    </footer>
+
+
+
+
+</body>
+
+</html>
