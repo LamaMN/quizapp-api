@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TriviaTrail Quiz – Answer questions and test your tech knowledge.">
     <title>TriviaTrail: Test your knowledge!</title>
     <link rel="stylesheet" href="../styles/quiz.css">
     <script src="../scripts/Quiz.js" defer></script>
@@ -11,20 +12,44 @@
 </head>
 
 <body class="flex">
+    <script>
+        if (localStorage.getItem('lightMode') === 'true') {
+            document.body.classList.add('light-mode');
+        }
+    </script>
+
+    <!-- Custom cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <!-- Subtle background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Trophy / session points widget -->
+    <div class="trophy-widget" title="Session points">
+        <i class="fa-solid fa-trophy"></i>
+        <span id="trophy-points">0</span>
+    </div>
+
+    <!-- Theme Toggle widget -->
+    <div class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Mode">
+        <i class="fa-solid fa-moon"></i>
+    </div>
+
     <div id="back-button">
         <a href="index.html">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
+
     <div class="wrapper">
         <div class="quiz-container">
             <div class="quizhead">
-                <h1 class="quiz-title"><img src="../media/TriviaTrail-light.png" alt="logo" width="180"></h1>
+                <h1 class="quiz-title"><div class="logo-wrap"><img src="../media/TriviaTrail.png" alt="TriviaTrail logo"></div></h1>
                 <div class="quiz-score flex">
-                    <span id="answered-questions">0</span>/<span id="total-questions">10</span>
+                    <span id="answered-questions">0</span>&nbsp;/&nbsp;<span id="total-questions">10</span>
                 </div>
             </div>
-
 
             <div class="quiz-body">
                 <h2 class="quiz-question" id="question"> <br> <span class="category"></span>
@@ -35,16 +60,103 @@
                     <li class="option" data-value="3"><span></span></li>
                     <li class="option" data-value="4"><span></span></li>
                 </ul>
-                <div id="result">
-
-                </div>
+                <div id="result"></div>
             </div>
+
             <div class="quiz-footer">
                 <button type="button" id="check-answer">Check Answer</button>
-                <button type="button" id="play-again">Play Again!</button>
+                <button type="button" id="play-again">Play Again</button>
             </div>
         </div>
     </div>
+
+    <script>
+        /* ── Custom Cursor ─────────────────────────────────── */
+        const dot  = document.getElementById('cursor-dot');
+        const ring = document.getElementById('cursor-ring');
+        let mx = 0, my = 0, rx = 0, ry = 0;
+
+        document.addEventListener('mousemove', e => {
+            mx = e.clientX; my = e.clientY;
+            dot.style.left = mx + 'px';
+            dot.style.top  = my + 'px';
+        });
+
+        (function lerpRing() {
+            rx += (mx - rx) * 0.1;
+            ry += (my - ry) * 0.1;
+            ring.style.left = rx + 'px';
+            ring.style.top  = ry + 'px';
+            requestAnimationFrame(lerpRing);
+        })();
+
+        document.querySelectorAll('a, button, li').forEach(el => {
+            el.addEventListener('mouseenter', () => ring.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => ring.classList.remove('hovered'));
+        });
+
+        /* ── Subtle Background ─────────────────────────────── */
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+
+        function resize() {
+            W = canvas.width  = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const DOTS = Array.from({ length: 45 }, () => ({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            r: Math.random() * 1.1 + 0.3,
+            vx: (Math.random() - 0.5) * 0.2,
+            vy: (Math.random() - 0.5) * 0.2,
+            a: Math.random() * 0.25 + 0.05,
+        }));
+
+        function drawBg() {
+            ctx.clearRect(0, 0, W, H);
+
+            const grd = ctx.createRadialGradient(W * 0.75, H * 0.2, 0, W * 0.75, H * 0.2, 320);
+            grd.addColorStop(0, 'rgba(124,58,237,0.07)');
+            grd.addColorStop(1, 'transparent');
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, W, H);
+
+            DOTS.forEach(d => {
+                d.x += d.vx; d.y += d.vy;
+                if (d.x < 0) d.x = W;
+                if (d.x > W) d.x = 0;
+                if (d.y < 0) d.y = H;
+                if (d.y > H) d.y = 0;
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(167,139,250,${d.a})`;
+                ctx.fill();
+            });
+
+            for (let i = 0; i < DOTS.length; i++) {
+                for (let j = i + 1; j < DOTS.length; j++) {
+                    const dx = DOTS[i].x - DOTS[j].x;
+                    const dy = DOTS[i].y - DOTS[j].y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < 100) {
+                        ctx.beginPath();
+                        ctx.moveTo(DOTS[i].x, DOTS[i].y);
+                        ctx.lineTo(DOTS[j].x, DOTS[j].y);
+                        ctx.strokeStyle = `rgba(124,58,237,${(1 - dist / 100) * 0.07})`;
+                        ctx.lineWidth = 0.7;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            requestAnimationFrame(drawBg);
+        }
+        drawBg();
+    </script>
 
 </body>
 

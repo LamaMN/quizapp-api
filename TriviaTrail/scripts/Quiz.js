@@ -1,200 +1,307 @@
-const _question = document.getElementById('question');
-const _options = document.querySelector('.quiz-options');
-const _checkBtn = document.getElementById('check-answer');
-const _playAgainBtn = document.getElementById('play-again');
-const _result = document.getElementById('result');
+/* ── DOM refs ─────────────────────────────────────────────────── */
+const _question          = document.getElementById('question');
+const _options           = document.querySelector('.quiz-options');
+const _checkBtn          = document.getElementById('check-answer');
+const _playAgainBtn      = document.getElementById('play-again');
+const _result            = document.getElementById('result');
 const _answeredQuestions = document.getElementById('answered-questions');
-const _totalQuestion = document.getElementById('total-questions');
+const _totalQuestion     = document.getElementById('total-questions');
+const _trophyPts         = document.getElementById('trophy-points');
 
-let correctAnswer = "", correctScore = 0, askedCount = 0, answeredCount = 0, totalQuestion = 0;
-var results;
+/* ── Session state ───────────────────────────────────────────── */
+let sessionPoints = parseInt(sessionStorage.getItem('sessionPoints') || '0', 10);
+let correctAnswer = '', correctScore = 0, askedCount = 0, answeredCount = 0, totalQuestion = 0;
+let results = null;
 
-// load question from API
-async function fetchQuestion() {
-    const quizSettings = JSON.parse(localStorage.getItem('quizSettings')) || {};
-    let { category, difficulty, numQuestions, questionType } = quizSettings;
-    if (category != "any") {
-        category = "&category=" + category;
-    } else {
-        category = "";
-    }
-    if (difficulty != "any") {
-        difficulty = "&difficulty=" + difficulty;
-    } else {
-        difficulty = "";
-    }
-    totalQuestion = numQuestions || 10; // Default to 10 questions if not set
-    if (_totalQuestion) _totalQuestion.textContent = totalQuestion; // Ensure totalQuestion is displayed correctly
+const API_KEY = 'qa_sk_eec8d3cb2ec03b3e86970da247c4f29dedae8379';
+const BASE_URL = 'https://quizapi.io/api/v1';
 
-    const APIUrl = `https://quizapi.io/api/v1/questions?apiKey=92R3yrtgP25wZUB6xhXalI7B2ukFNNYWgiyb21G5${category}${difficulty}&limit=${numQuestions}&single_answer_only=true`;
-    try {
-        const result = await fetch(APIUrl);
-        const data = await result.json();
-        _result.innerHTML = "";
-
-        if (data && data.length > 0) {
-            results = data;
-
-
-        } else {
-            _result.innerHTML = `<p><i class="fas fa-exclamation-triangle"></i> No questions available. Please try again later.</p>`;
-            _checkBtn.style.display = "none";
-        }
-    } catch (error) {
-        _result.innerHTML = `<p><i class="fas fa-exclamation-triangle"></i> Failed to load questions. Please check your connection and try again.</p>`;
-        console.error("Error fetching quiz data:", error);
-    }
-
-    loadQuestion();
+/* ── Trophy display ──────────────────────────────────────────── */
+function updateTrophy() {
+    if (_trophyPts) _trophyPts.textContent = sessionPoints;
 }
-function loadQuestion() {
-    console.log(results);
-    if (askedCount >= results.length) {
-        return 0; // No more questions to load
-    } else {
-        showQuestion(results[askedCount]); // Use the `results` array
-    }
-}
-// event listeners
-function eventListeners() {
-    _checkBtn.addEventListener('click', checkAnswer);
-    _playAgainBtn.addEventListener('click', restartQuiz);
-}
+updateTrophy();
 
-document.addEventListener('DOMContentLoaded', function () {
-    fetchQuestion();
-    eventListeners();
-    if (_totalQuestion) _totalQuestion.textContent = totalQuestion;
-    if (_answeredQuestions) _answeredQuestions.textContent = answeredCount;
-});
-
-
-// Utility function to encode HTML
+/* ── Utility ─────────────────────────────────────────────────── */
 function encodeHTML(str) {
+    if (str == null) return '';
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
 }
 
-// display question and options
-function showQuestion(data) {
-    _checkBtn.disabled = false;
-    question = getData(data);
-    correctAnswer = question.correctAnswer;
-    let incorrectAnswer = question.incorrectAnswers;
-    console.log(correctAnswer);
-    let optionsList = incorrectAnswer;
+/* ── Fetch questions ─────────────────────────────────────────── */
+async function fetchQuestion() {
+    const settings = JSON.parse(localStorage.getItem('quizSettings')) || {};
+    const { mode, category, tag, difficulty, numQuestions, quizSearchTerm } = settings;
 
-    _question.innerHTML = `${question.question} <br> <span class = "category"> ${question.category} </span>`;
-    _options.innerHTML = `
-        ${optionsList.map((option, index) => `
-            <li tabindex="0"> ${index + 1}. <span>${encodeHTML(option)}</span> </li>
-        `).join('')}
-    `;
-    selectOption();
+    totalQuestion = parseInt(numQuestions, 10) || 10;
+    if (_totalQuestion) _totalQuestion.textContent = totalQuestion;
+
+    // Loading state
+    _question.textContent   = 'Loading questions…';
+    _options.innerHTML      = '';
+    _result.innerHTML       = '';
+    _checkBtn.disabled      = true;
+
+    try {
+        if (mode === 'quiz' && quizSearchTerm) {
+            // ── Two-step: find quiz by search term → load its questions ──
+            await fetchByQuizSearch(quizSearchTerm);
+        } else {
+            // ── Browse mode: questions endpoint with filters ──
+            await fetchBrowseQuestions({ category, tag, difficulty, numQuestions: totalQuestion });
+        }
+    } catch (err) {
+        console.error('Fetch error:', err);
+        showError(`Failed to load questions: ${err.message}`);
+    }
 }
 
+/* Step 1 of quiz mode: search quizzes, then load by quiz_id */
+async function fetchByQuizSearch(searchTerm) {
+    const params = new URLSearchParams({
+        topic: searchTerm,
+        limit: 5,
+        sort: 'popular',
+    });
 
-function getData(data) {
-    const question = data.question;
+    const res = await fetch(`${BASE_URL}/quizzes?${params}`, {
+        headers: { 'Authorization': `Bearer ${API_KEY}` }
+    });
 
-    const correctAnswers = data.correct_answers;
-    let correctAnswerKey = Object.keys(correctAnswers).find(key => correctAnswers[key] === 'true');
-    correctAnswerKey = correctAnswerKey.replace(/_correct$/, '');
-    correctAnswer = data.answers[correctAnswerKey];
+    if (!res.ok) throw new Error(`Quiz search failed (HTTP ${res.status})`);
 
-    let incorrectAnswers = Object.values(data.answers).filter(value => value !== null);
+    const json = await res.json();
+    const quizzes = json.data ?? [];
 
-    if (incorrectAnswers.length > 4) {
-        incorrectAnswers = incorrectAnswers.slice(0, 4);
-
-        if (!incorrectAnswers.includes(correctAnswer)) {
-            incorrectAnswers[Math.floor(Math.random() * 4)] = correctAnswer;
-        }
+    if (!quizzes.length) {
+        showError(`No quiz found for "${searchTerm}". Try a different topic.`);
+        return;
     }
 
+    // Pick the best match (most plays)
+    const quiz = quizzes[0];
+
+    // Step 2: fetch questions for that quiz
+    const qRes = await fetch(
+        `${BASE_URL}/questions?quiz_id=${quiz.id}&include_answers=true`,
+        { headers: { 'Authorization': `Bearer ${API_KEY}` } }
+    );
+
+    if (!qRes.ok) throw new Error(`Failed to load quiz questions (HTTP ${qRes.status})`);
+
+    const qJson = await qRes.json();
+    const data  = qJson.data ?? [];
+
+    // Shuffle and cap to requested question count
+    const shuffled = data.sort(() => Math.random() - 0.5).slice(0, totalQuestion);
+
+    if (shuffled.length === 0) {
+        showError('No questions available for this quiz.');
+        return;
+    }
+
+    results = shuffled;
+    loadQuestion();
+}
+
+/* Browse mode: questions endpoint with filters */
+async function fetchBrowseQuestions({ category, tag, difficulty, numQuestions }) {
+    const params = new URLSearchParams();
+    params.set('limit',  numQuestions);
+    params.set('random', 'true');
+    params.set('type',   'MULTIPLE_CHOICE');
+
+    if (category && category !== 'any') params.set('category', category);
+    if (tag)                            params.set('tags', tag);
+    if (difficulty && difficulty !== 'any') params.set('difficulty', difficulty.toUpperCase());
+
+    const res = await fetch(`${BASE_URL}/questions?${params}`, {
+        headers: { 'Authorization': `Bearer ${API_KEY}` }
+    });
+
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+    }
+
+    const json = await res.json();
+    const data = json.data ?? json;
+
+    if (Array.isArray(data) && data.length > 0) {
+        results = data;
+        loadQuestion();
+    } else {
+        showError('No questions found for that combination. Try a different category or difficulty.');
+    }
+}
+
+function showError(msg) {
+    _question.innerHTML     = '';
+    _result.innerHTML       = `<p class="result-warning"><i class="fas fa-exclamation-triangle"></i> ${msg}</p>`;
+    _checkBtn.style.display = 'none';
+}
+
+/* ── Load / display question ─────────────────────────────────── */
+function loadQuestion() {
+    if (!results || results.length === 0) return;
+    if (askedCount >= results.length)     return;
+
+    _result.innerHTML = '';
+    showQuestion(results[askedCount]);
+}
+
+function showQuestion(data) {
+    _checkBtn.disabled      = false;
+    _checkBtn.style.display = 'block';
+
+    const q = parseQuestion(data);
+    correctAnswer = q.correctAnswer;
+
+    _question.innerHTML =
+        `${encodeHTML(q.text)}<br><span class="category">${encodeHTML(q.category)}</span>`;
+
+    // Shuffle the answers so correct isn't always in same position
+    const shuffled = q.answers.sort(() => Math.random() - 0.5);
+
+    _options.innerHTML = shuffled
+        .map((a, i) => `<li data-answer="${encodeHTML(a.text)}">${i + 1}. <span>${encodeHTML(a.text)}</span></li>`)
+        .join('');
+
+    // Re-attach cursor-ring hover on dynamic lis
+    const ring = document.getElementById('cursor-ring');
+    if (ring) {
+        _options.querySelectorAll('li').forEach(li => {
+            li.addEventListener('mouseenter', () => ring.classList.add('hovered'));
+            li.addEventListener('mouseleave', () => ring.classList.remove('hovered'));
+        });
+    }
+}
+
+/* ── Parse new API question format ──────────────────────────── */
+function parseQuestion(data) {
+    // Browse mode: data.text, data.answers = [{id, text, isCorrect}]
+    // Quiz mode:   same structure but nested under data.data
+    const text     = data.text || data.question || '';
+    const category = data.category || data.quizTitle || '';
+    const answers  = (data.answers || []).filter(a => a.text);
+
+    const correctAns = answers.find(a => a.isCorrect);
+
     return {
-        question: question,
-        correctAnswer: correctAnswer,
-        incorrectAnswers: incorrectAnswers,
-        category: data.category
+        text,
+        category,
+        correctAnswer: correctAns ? correctAns.text : null,
+        answers,
     };
 }
 
-function changeButtonColor() {
-    _checkBtn.classList.add('focus'); 
-}
+/* ── Option selection (delegated) ────────────────────────────── */
+_options.addEventListener('click', e => {
+    const li = e.target.closest('li');
+    if (!li) return;
+    _options.querySelectorAll('li').forEach(opt => opt.classList.remove('selected'));
+    li.classList.add('selected');
+    _checkBtn.classList.add('focus');
+});
 
-
-function selectOption() {
-    _options.querySelectorAll('li').forEach(function (option) {
-        option.addEventListener('click', function () {
-            _options.querySelectorAll('li').forEach(opt => opt.classList.remove('selected'));
-
-            option.classList.add('selected');
-        });
-
-        option.addEventListener('focus', changeButtonColor);
-    });
-
-
-}
-
-
+/* ── Check answer ────────────────────────────────────────────── */
 function checkAnswer() {
     _checkBtn.disabled = true;
-    if (_options.querySelector('.selected')) {
-        let selectedAnswer = _options.querySelector('.selected span').textContent;
-        if (selectedAnswer == (correctAnswer)) {
-            correctScore++;
-            _result.innerHTML = `<p><i class = "fas fa-check"></i>Correct Answer!</p>`;
-        } else {
-            _result.innerHTML = `<p><i class = "fas fa-times"></i>Incorrect Answer!</p> <small><b>Correct Answer: </b>${encodeHTML(correctAnswer)}</small>`;
-        }
-        checkCount();
-        _checkBtn.classList.remove('focus');
-    } else {
-        _result.innerHTML = `<p><i class = "fas fa-question"></i>Please select an option!</p>`;
+    _checkBtn.classList.remove('focus');
+
+    const selected = _options.querySelector('.selected');
+    if (!selected) {
+        _result.innerHTML = `<p class="result-warning"><i class="fas fa-question"></i> Please select an option first.</p>`;
         _checkBtn.disabled = false;
+        return;
     }
+
+    const selectedText = selected.querySelector('span').textContent.trim();
+    const isCorrect    = selectedText === (correctAnswer || '').trim();
+
+    // Points: correct = +10, wrong = 0 (no penalty)
+    if (isCorrect) {
+        correctScore++;
+        sessionPoints += 10;
+        sessionStorage.setItem('sessionPoints', sessionPoints);
+        updateTrophy();
+
+        // Animate trophy on correct
+        const trophy = document.querySelector('.trophy-widget');
+        if (trophy) {
+            trophy.classList.add('pop');
+            setTimeout(() => trophy.classList.remove('pop'), 400);
+        }
+
+        _result.innerHTML = `<p class="result-correct"><i class="fas fa-check"></i> Correct! +10 pts</p>`;
+    } else {
+        const explanation = results[askedCount - 0]?.explanation;
+        _result.innerHTML =
+            `<p class="result-incorrect"><i class="fas fa-times"></i> Incorrect.</p>` +
+            `<small><b>Correct answer:</b> ${encodeHTML(correctAnswer)}</small>` +
+            (explanation ? `<small class="explanation">${encodeHTML(explanation)}</small>` : '');
+    }
+
+    checkCount();
 }
 
-
-
+/* ── Progress & end-of-quiz ──────────────────────────────────── */
 function checkCount() {
     askedCount++;
     answeredCount++;
     setCount();
-    if (askedCount == totalQuestion) {
-        setTimeout(function () {
-        }, 5000);
-        _result.innerHTML += `<p>Your score is ${correctScore}.</p>`;
-        _playAgainBtn.style.display = "block";
-        _checkBtn.style.display = "none";
+
+    if (askedCount >= totalQuestion) {
+        const pct = Math.round((correctScore / totalQuestion) * 100);
+        const grade = pct >= 80 ? '🏆 Excellent!' : pct >= 60 ? '✅ Good job!' : '📚 Keep practicing!';
+        _result.innerHTML +=
+            `<p class="result-score">` +
+            `${grade} You scored <b>${correctScore} / ${totalQuestion}</b> (${pct}%) · Session: <b>${sessionPoints} pts</b>` +
+            `</p>`;
+        _playAgainBtn.style.display = 'block';
+        _checkBtn.style.display     = 'none';
     } else {
-        setTimeout(function () {
-            loadQuestion(); // Ensure the next question is loaded
-        }, 300);
+        setTimeout(loadQuestion, 1500);
     }
 }
 
 function setCount() {
-    if (_totalQuestion) _totalQuestion.textContent = totalQuestion; // Ensure totalQuestion is updated
-    if (_answeredQuestions) _answeredQuestions.textContent = answeredCount;
+    if (_totalQuestion)     _totalQuestion.textContent     = totalQuestion;
+    if (_answeredQuestions) _answeredQuestions.textContent  = answeredCount;
 }
 
-
+/* ── Restart ─────────────────────────────────────────────────── */
 function restartQuiz() {
     answeredCount = askedCount = correctScore = 0;
-    _playAgainBtn.style.display = "none";
-    _checkBtn.style.display = "block";
+    results = null;
+    _playAgainBtn.style.display = 'none';
+    _checkBtn.style.display     = 'block';
     _checkBtn.classList.remove('focus');
     _checkBtn.disabled = false;
     setCount();
     fetchQuestion();
 }
 
-
-document.getElementById('back-button').addEventListener('click', function (event) {
-
+/* ── Boot ────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+    _checkBtn.addEventListener('click', checkAnswer);
+    _playAgainBtn.addEventListener('click', restartQuiz);
+    setCount();
+    fetchQuestion();
 });
+
+/* ── Theme Toggle ──────────────────────────────────────────── */
+const themeToggleBtn = document.getElementById('themeToggle');
+if (themeToggleBtn) {
+    const isLight = document.body.classList.contains('light-mode');
+    themeToggleBtn.innerHTML = isLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+
+    themeToggleBtn.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        const nowLight = document.body.classList.contains('light-mode');
+        localStorage.setItem('lightMode', nowLight);
+        themeToggleBtn.innerHTML = nowLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+    });
+}

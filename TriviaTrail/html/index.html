@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="TriviaTrail – Pick a category, set your difficulty, and test your tech knowledge.">
     <title>TriviaTrail: Test your knowledge!</title>
     <link rel="stylesheet" href="../styles/style.css">
     <script src="../scripts/index.js" defer></script>
@@ -11,76 +13,213 @@
 </head>
 
 <body>
+    <script>
+        if (localStorage.getItem('lightMode') === 'true') {
+            document.body.classList.add('light-mode');
+        }
+    </script>
+
+    <!-- Custom cursor -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <!-- Subtle background -->
+    <canvas id="bg-canvas"></canvas>
+
     <header>
-        <h1><img src="../media/TriviaTrail.png" alt="logo" width="180"></h1>
-        <nav>
-            <a href="#">About</a>
-            <a href="#">Contact</a>
-        </nav>
+        <h1>
+            <div class="logo-wrap"><img src="../media/TriviaTrail.png" alt="TriviaTrail logo"></div>
+        </h1>
+        <!-- Trophy / session points widget -->
+        <div class="trophy-widget" title="Session points">
+            <i class="fa-solid fa-trophy"></i>
+            <span id="trophy-points">0</span>
+        </div>
+
+        <!-- Theme Toggle widget -->
+        <div class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Mode">
+            <i class="fa-solid fa-moon"></i>
+        </div>
     </header>
 
-    <section class="main-section">
-
-        <div class="welcome-container">
-            <p id="small-text">Welcome to TriviaTrail!</p>
-            <h2>Design your quiz and test your knowledge</h2>
-            <p>Dive into a wide range of technical trivia categories, with questions tailored to all skill levels. Choose your
-                preferred difficulty—from easy to
-                hard—and see how much you really know. Let’s get started!</p>
-        </div>
-
-        <div class="options-container">
-            <h3>Choose Category</h3>
-
-            <div class="button-container" id="buttonContainer">
-                <button class="category-button" data-value="any"> <i class="fa-solid fa-shuffle"></i>Random</button>
-                <button class="category-button" data-value="code"> <i class="fa-solid fa-code"></i>Code</button>
-                <button class="category-button" data-value="html"> <i class="fa-brands fa-html5"></i>HTML</button>
-                <button class="category-button" data-value="wordpress"> <i
-                        class="fa-brands fa-wordpress"></i>wordpress</button>
-                <button class="category-button" data-value="nodejs"> <i class="fa-brands fa-node"></i>Node.js</button>
-                <button class="category-button" data-value="cpanel"> <i class="fa-brands fa-cpanel"></i>CPanel</button>
-                <button class="category-button" data-value="django"> <i class="fa-brands fa-python"></i>Django</button>
-                <button class="more-button" id="moreButton"><i class="fa-solid fa-ellipsis"></i></button>
-            </div>
 
 
-            <div class="select-container">
 
-                <label for="numQuestions">Number of Questions:
-                    <select id="numQuestions">
-                        <option value="5">5</option>
-                        <option value="10" selected>10</option>
-                        <option value="15">15</option>
-                        <option value="20">20</option>
-                    </select>
-                </label>
 
-                <label for="difficulty">Difficulty:
-                    <select id="difficulty">
-                        <option value="any" selected>Any Difficulty</option>
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
-                </label>
-
-                <button id="start-button">Start Quiz</button>
+    <div class="page-wrapper">
+        <!-- Tags Ribbon -->
+        <div class="tags-ribbon">
+            <div class="tags-track">
+                <span>JavaScript</span> • <span>Python</span> • <span>React</span> • <span>TypeScript</span> •
+                <span>Node.js</span> • <span>SQL</span> • <span>Docker</span> • <span>Kubernetes</span> •
+                <span>AWS</span> •
+                <span>Web Security</span> • <span>Interview Prep</span> • <span>Git</span> • <span>HTML/CSS</span> •
+                <span>Vue.js</span> • <span>Bash</span> •
+                <!-- Duplicate for seamless scroll -->
+                <span>JavaScript</span> • <span>Python</span> • <span>React</span> • <span>TypeScript</span> •
+                <span>Node.js</span> • <span>SQL</span> • <span>Docker</span> • <span>Kubernetes</span> •
+                <span>AWS</span> •
+                <span>Web Security</span> • <span>Interview Prep</span> • <span>Git</span> • <span>HTML/CSS</span> •
+                <span>Vue.js</span> • <span>Bash</span>
             </div>
         </div>
-    </section>
-    
-    <footer>
+        <section class="main-section">
 
-        <div class="footer-container">
+            <!-- Left: Info -->
+            <div class="welcome-container">
+                <div class="badge">
+                    <span class="badge-dot"></span>
+                    TriviaTrail
+                </div>
+                <h2>Design your quiz,<br>test your knowledge.</h2>
+                <p class="description">
+                    Explore a wide range of technical trivia categories with questions tailored to every skill level.
+                    Pick your difficulty and find out how much you really know.
+                </p>
+                <div class="stats-row">
+                    <div class="stat">
+                        <span class="stat-number">15+</span>
+                        <span class="stat-label">Categories</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-number">4</span>
+                        <span class="stat-label">Difficulty levels</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-number">20</span>
+                        <span class="stat-label">Questions max</span>
+                    </div>
+                </div>
+            </div>
 
-            <img src="../media/footer.png" alt="footer illustration" width="600">
+            <!-- Right: Quiz builder -->
+            <div class="options-container">
 
-        </div>
-    </footer>
+                <!-- ── Quick Modes ── -->
+                <div>
+                    <div class="section-label-row">
+                        <p class="section-label">Quick Modes</p>
+                        <div id="activeTagsContainer" class="active-tags"></div>
+                    </div>
+                    <div class="quick-modes" id="quickModes">
+                        <!-- populated by index.js -->
+                    </div>
+                </div>
 
+                <!-- ── Category ── -->
+                <div>
+                    <p class="section-label">Category</p>
+                    <div class="button-container" id="buttonContainer">
+                        <!-- Populated by index.js -->
+                        <button class="more-button" id="moreButton"><i class="fa-solid fa-ellipsis"></i></button>
+                    </div>
+                </div>
 
+                <div class="controls-group">
+                    <label for="numQuestions">
+                        Number of questions
+                        <select id="numQuestions">
+                            <option value="5">5 questions</option>
+                            <option value="10" selected>10 questions</option>
+                            <option value="15">15 questions</option>
+                            <option value="20">20 questions</option>
+                        </select>
+                    </label>
 
+                    <label for="difficulty">
+                        Difficulty
+                        <select id="difficulty">
+                            <option value="any" selected>Any difficulty</option>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                            <option value="expert">Expert</option>
+                        </select>
+                    </label>
+                </div>
+
+                <button id="start-button">Start Quiz →</button>
+
+            </div>
+        </section>
+    </div>
+
+    <script>
+        /* ── Custom Cursor ─────────────────────────────────── */
+        const dot = document.getElementById('cursor-dot');
+        const ring = document.getElementById('cursor-ring');
+        let mx = 0, my = 0, rx = 0, ry = 0;
+
+        document.addEventListener('mousemove', e => {
+            mx = e.clientX; my = e.clientY;
+            dot.style.left = mx + 'px';
+            dot.style.top = my + 'px';
+        });
+
+        (function lerpRing() {
+            rx += (mx - rx) * 0.1;
+            ry += (my - ry) * 0.1;
+            ring.style.left = rx + 'px';
+            ring.style.top = ry + 'px';
+            requestAnimationFrame(lerpRing);
+        })();
+
+        document.querySelectorAll('a, button, select').forEach(el => {
+            el.addEventListener('mouseenter', () => ring.classList.add('hovered'));
+            el.addEventListener('mouseleave', () => ring.classList.remove('hovered'));
+        });
+
+        /* ── Background canvas ─────────────────────────────── */
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+
+        function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const DOTS = Array.from({ length: 55 }, () => ({
+            x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+            r: Math.random() * 1.2 + 0.3, vx: (Math.random() - 0.5) * 0.22, vy: (Math.random() - 0.5) * 0.22,
+            a: Math.random() * 0.3 + 0.05,
+        }));
+
+        function drawBg() {
+            ctx.clearRect(0, 0, W, H);
+
+            const isLight = document.body.classList.contains('light-mode');
+            const gColor1 = isLight ? 'rgba(124,58,237,0.15)' : 'rgba(124,58,237,0.07)';
+            const gColor2 = isLight ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.05)';
+            const dotColorFn = (a) => isLight ? `rgba(109,40,217,${a + 0.25})` : `rgba(167,139,250,${a})`;
+            const lineColorFn = (dist) => isLight ? `rgba(109,40,217,${(1 - dist / 110) * 0.25})` : `rgba(124,58,237,${(1 - dist / 110) * 0.08})`;
+
+            const g = ctx.createRadialGradient(W * .78, H * .18, 0, W * .78, H * .18, 340);
+            g.addColorStop(0, gColor1); g.addColorStop(1, 'transparent');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+            const g2 = ctx.createRadialGradient(W * .12, H * .82, 0, W * .12, H * .82, 280);
+            g2.addColorStop(0, gColor2); g2.addColorStop(1, 'transparent');
+            ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+
+            DOTS.forEach(d => {
+                d.x += d.vx; d.y += d.vy;
+                if (d.x < 0) d.x = W; if (d.x > W) d.x = 0;
+                if (d.y < 0) d.y = H; if (d.y > H) d.y = 0;
+                ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                ctx.fillStyle = dotColorFn(d.a); ctx.fill();
+            });
+            for (let i = 0; i < DOTS.length; i++) for (let j = i + 1; j < DOTS.length; j++) {
+                const dx = DOTS[i].x - DOTS[j].x, dy = DOTS[i].y - DOTS[j].y, dist = Math.hypot(dx, dy);
+                if (dist < 110) {
+                    ctx.beginPath(); ctx.moveTo(DOTS[i].x, DOTS[i].y); ctx.lineTo(DOTS[j].x, DOTS[j].y);
+                    ctx.strokeStyle = lineColorFn(dist); ctx.lineWidth = 0.7; ctx.stroke();
+                }
+            }
+            requestAnimationFrame(drawBg);
+        }
+        drawBg();
+    </script>
 
 </body>
 
